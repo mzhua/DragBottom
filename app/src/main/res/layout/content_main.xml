@@ -10,17 +10,18 @@
     tools:showIn="@layout/activity_main">
 
     <im.hua.library.BottomDragLayout
+        android:id="@+id/bdl"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:background="@android:color/background_dark"
                 android:orientation="vertical">
 
@@ -37,30 +38,33 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="hello"/>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/holo_green_dark"
-                    android:text="ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束"/>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@android:color/holo_green_dark"
-                    android:text="ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束"/>
+                    android:text="@string/test"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/holo_green_dark"
+                    android:text="@string/test"/>
 
             </LinearLayout>
         </ScrollView>
 
         <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="100dp"
+            android:background="@android:color/holo_blue_bright"
+            >
 
             <TextView
+                android:id="@+id/tv_bottom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/holo_green_dark"
-                android:text="ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束ajsdljasldkjflajsdklf\nasdfasdf\nasdjflkjasldkjflksadf\njasldjflkasjdlfa\nalsdjflsajkldf\nlsadjflkasjdlkfjkasldjflaskdlfla\njsldjfklsd结束"/>
+                android:text="drag me"/>
         </android.support.v4.widget.NestedScrollView>
 
     </im.hua.library.BottomDragLayout>

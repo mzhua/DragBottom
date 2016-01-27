@@ -7,10 +7,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import im.hua.library.BottomDragLayout;
 
 public class MainActivity extends AppCompatActivity {
+
+    @Bind(R.id.bdl)
+    BottomDragLayout mBdl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +38,9 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    @OnClick(R.id.tv1)
-    public void onTextClick() {
-
+    @OnClick(R.id.tv_bottom)
+    public void onBottomTextClick() {
+        mBdl.showBottomView();
     }
 
     @Override

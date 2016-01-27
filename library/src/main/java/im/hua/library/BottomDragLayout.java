@@ -3,11 +3,9 @@ package im.hua.library;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.os.Build;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,7 +23,6 @@ public class BottomDragLayout extends ViewGroup {
     private View mShadowView;
     private View mContentView;
     private View mBottomView;
-    private Point mAutoBackOriginPos = new Point();
 
     private int mBottomInitialHeight;
 
@@ -44,6 +41,7 @@ public class BottomDragLayout extends ViewGroup {
      * 单位：dp
      */
     private int mFinalMarginTop = 48;
+    private int mFinalMarginTopPx;
 
     public BottomDragLayout(Context context) {
         super(context);
@@ -69,7 +67,8 @@ public class BottomDragLayout extends ViewGroup {
     private void init() {
         setFocusableInTouchMode(true);
 
-        mBottomInitialHeight = DensityUtil.dp2px(getContext(), 48);
+        mBottomInitialHeight = DensityUtil.dp2px(getContext(), 56);
+        mFinalMarginTopPx = DensityUtil.dp2px(getContext(), mFinalMarginTop);
 
         mShadowView = new View(getContext());
         mShadowView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
@@ -91,17 +90,13 @@ public class BottomDragLayout extends ViewGroup {
 
             @Override
             public int clampViewPositionHorizontal(View child, int left, int dx) {
-                if (child == mBottomView) {
-                    return child.getLeft();
-                }
-                return left;
+                return child.getLeft();
             }
 
             @Override
             public int clampViewPositionVertical(View child, int top, int dy) {
                 int topBound = getMeasuredHeight() - mBottomView.getMeasuredHeight();
-                int finalMarginTopPx = DensityUtil.dp2px(getContext(), mFinalMarginTop);
-                topBound = (topBound < getPaddingTop() + finalMarginTopPx ? getPaddingTop() + finalMarginTopPx : topBound);
+                topBound = (topBound < getPaddingTop() + mFinalMarginTopPx ? getPaddingTop() + mFinalMarginTopPx : topBound);
 
                 int bottomBound = getMeasuredHeight() - mBottomInitialHeight;
                 bottomBound = (bottomBound < getPaddingTop() ? getPaddingTop() : bottomBound);
@@ -117,11 +112,10 @@ public class BottomDragLayout extends ViewGroup {
                     if (getMeasuredHeight() - mBottomView.getTop() > (mBottomView.getMeasuredHeight() / 2)) {
                         settleTop = getMeasuredHeight() - mBottomView.getMeasuredHeight();
                     } else {
-                        settleTop = mAutoBackOriginPos.y;
+                        settleTop = getMeasuredHeight() - mBottomInitialHeight;
                     }
-                    int finalMarginTopPx = DensityUtil.dp2px(getContext(), mFinalMarginTop);
-                    settleTop = (settleTop < getPaddingTop() + finalMarginTopPx ? getPaddingTop() + finalMarginTopPx : settleTop);
-                    mViewDragHelper.settleCapturedViewAt(mAutoBackOriginPos.x, settleTop);
+                    settleTop = (settleTop < getPaddingTop() + mFinalMarginTopPx ? getPaddingTop() + mFinalMarginTopPx : settleTop);
+                    mViewDragHelper.settleCapturedViewAt(mBottomView.getLeft(), settleTop);
                     invalidate();
                 }
             }
@@ -132,9 +126,6 @@ public class BottomDragLayout extends ViewGroup {
                 if (changedView == mBottomView) {
                     int alp = (mMaxAlpha - mMinAlpha) * (getMeasuredHeight() - mBottomInitialHeight - top) / (getMeasuredHeight() - mBottomInitialHeight) + mMinAlpha;
                     if (alp >= mMinAlpha && alp <= mMaxAlpha) {
-                        Log.d("BottomDragLayout", "alp:" + alp);
-                        Log.d("BottomDragLayout", "1 - 1.0f * alp / 255:" + (1 - 1.0f * alp / 255));
-//                        mShadowView.setBackgroundColor(Color.argb(alp, 0, 0, 0));
                         mShadowView.setAlpha(1.0f * alp / 255);
                     }
                 }
@@ -177,16 +168,6 @@ public class BottomDragLayout extends ViewGroup {
                 return verticalRange <= getPaddingTop() ? getMeasuredHeight() : verticalRange;
             }
         });
-        mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
-    }
-
-    private void hideBottomView() {
-        mIsBottomViewOpen = false;
-        int finalLeft = 0;
-        int finalTop = getMeasuredHeight() - mBottomInitialHeight;
-
-        mViewDragHelper.smoothSlideViewTo(mBottomView, finalLeft, finalTop);
-        invalidate();
     }
 
     @Override
@@ -280,10 +261,6 @@ public class BottomDragLayout extends ViewGroup {
                         top = getMeasuredHeight() - mBottomInitialHeight;
                     }
                     bottom = top + childView.getMeasuredHeight() - DensityUtil.dp2px(getContext(), mFinalMarginTop);
-
-                    mAutoBackOriginPos.x = left;
-                    mAutoBackOriginPos.y = top;
-
                     break;
             }
             childView.layout(left, top, right, bottom);
@@ -314,5 +291,23 @@ public class BottomDragLayout extends ViewGroup {
     @Override
     public LayoutParams generateLayoutParams(AttributeSet attrs) {
         return new MarginLayoutParams(getContext(), attrs);
+    }
+
+    public void hideBottomView() {
+        if (mIsBottomViewOpen) {
+            mIsBottomViewOpen = false;
+            mViewDragHelper.smoothSlideViewTo(mBottomView, mBottomView.getLeft(), getMeasuredHeight() - mBottomInitialHeight);
+            invalidate();
+        }
+    }
+
+    public void showBottomView() {
+        if (!mIsBottomViewOpen) {
+            mIsBottomViewOpen = true;
+            int settleTop = getMeasuredHeight() - mBottomView.getMeasuredHeight();
+            settleTop = (settleTop < getPaddingTop() + mFinalMarginTopPx ? getPaddingTop() + mFinalMarginTopPx : settleTop);
+            mViewDragHelper.smoothSlideViewTo(mBottomView, mBottomView.getLeft(), settleTop);
+            invalidate();
+        }
     }
 }
