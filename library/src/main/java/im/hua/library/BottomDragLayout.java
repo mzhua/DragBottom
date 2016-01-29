@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,7 +28,7 @@ public class BottomDragLayout extends ViewGroup {
     private int mBottomInitialHeight;
 
     private int mMinAlpha = 0;
-    private int mMaxAlpha = 200;
+    private int mMaxAlpha = 180;
 
     private boolean mIsBottomViewOpen = false;
 
@@ -98,7 +99,7 @@ public class BottomDragLayout extends ViewGroup {
                 int topBound = getMeasuredHeight() - mBottomView.getMeasuredHeight();
                 topBound = (topBound < getPaddingTop() + mFinalMarginTopPx ? getPaddingTop() + mFinalMarginTopPx : topBound);
 
-                int bottomBound = getMeasuredHeight() - mBottomInitialHeight;
+                int bottomBound = mBottomView.getBottom();//+ mBottomInitialHeight;
                 bottomBound = (bottomBound < getPaddingTop() ? getPaddingTop() : bottomBound);
 
                 return Math.min((Math.max(top, topBound)), bottomBound);
@@ -108,11 +109,26 @@ public class BottomDragLayout extends ViewGroup {
             public void onViewReleased(View releasedChild, float xvel, float yvel) {
                 super.onViewReleased(releasedChild, xvel, yvel);
                 if (releasedChild == mBottomView) {
-                    int settleTop;
-                    if (getMeasuredHeight() - mBottomView.getTop() > (mBottomView.getMeasuredHeight() / 2)) {
+                    int settleTop = mBottomView.getTop();
+                   /* if (getMeasuredHeight() - mBottomView.getTop() > (mBottomView.getMeasuredHeight() / 2)) {
                         settleTop = getMeasuredHeight() - mBottomView.getMeasuredHeight();
                     } else {
                         settleTop = getMeasuredHeight() - mBottomInitialHeight;
+                    }*/
+                    Log.d("BottomDragLayout", "yvel:" + yvel);
+                    if (yvel < 0) {
+                        if (yvel <= -10 || (yvel < 0 && getMeasuredHeight() - mBottomView.getTop() > (mBottomView.getMeasuredHeight() / 2))) {
+                            //展开
+                            settleTop = getMeasuredHeight() - mBottomView.getMeasuredHeight();
+                        } else {
+                            settleTop = getMeasuredHeight() - mBottomInitialHeight;
+                        }
+                    } else {
+                        if (yvel >= 10 || (yvel >= 0 && getMeasuredHeight() - mBottomView.getTop() <= (mBottomView.getMeasuredHeight() / 2))) {
+                            settleTop = getMeasuredHeight() - mBottomInitialHeight;
+                        } else {
+                            settleTop = getMeasuredHeight() - mBottomView.getMeasuredHeight();
+                        }
                     }
                     settleTop = (settleTop < getPaddingTop() + mFinalMarginTopPx ? getPaddingTop() + mFinalMarginTopPx : settleTop);
                     mViewDragHelper.settleCapturedViewAt(mBottomView.getLeft(), settleTop);
@@ -124,7 +140,7 @@ public class BottomDragLayout extends ViewGroup {
             public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
                 super.onViewPositionChanged(changedView, left, top, dx, dy);
                 if (changedView == mBottomView) {
-                    int alp = (mMaxAlpha - mMinAlpha) * (getMeasuredHeight() - mBottomInitialHeight - top) / (getMeasuredHeight() - mBottomInitialHeight) + mMinAlpha;
+                    int alp = (mMaxAlpha - mMinAlpha) * (getMeasuredHeight() - mBottomInitialHeight - top) / (mBottomView.getMeasuredHeight() - mBottomInitialHeight) + mMinAlpha;
                     if (alp >= mMinAlpha && alp <= mMaxAlpha) {
                         mShadowView.setAlpha(1.0f * alp / 255);
                     }
@@ -164,7 +180,7 @@ public class BottomDragLayout extends ViewGroup {
 
             @Override
             public int getViewVerticalDragRange(View child) {
-                int verticalRange = getMeasuredHeight() - child.getMeasuredHeight();
+                int verticalRange = child.getMeasuredHeight() - mBottomInitialHeight;
                 return verticalRange <= getPaddingTop() ? getMeasuredHeight() : verticalRange;
             }
         });
@@ -240,10 +256,11 @@ public class BottomDragLayout extends ViewGroup {
             switch (i) {
                 case 0:
                     right = childView.getMeasuredWidth();
+                    //TODO fix it
                     bottom = childView.getMeasuredHeight() - mBottomInitialHeight;
                     break;
                 case 1:
-                    top = getBottom();
+                    top = getBottom();//default set the shadow view to the bottom,so it won't interrupt the click ecent
                     right = getMeasuredWidth();
                     bottom = getMeasuredHeight();
                     break;
@@ -260,7 +277,7 @@ public class BottomDragLayout extends ViewGroup {
                     } else {
                         top = getMeasuredHeight() - mBottomInitialHeight;
                     }
-                    bottom = top + childView.getMeasuredHeight() - DensityUtil.dp2px(getContext(), mFinalMarginTop);
+                    bottom = top + childView.getMeasuredHeight();
                     break;
             }
             childView.layout(left, top, right, bottom);
