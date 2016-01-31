@@ -5,7 +5,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -24,6 +28,19 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        createList((ListView) findViewById(R.id.list));
+    }
+
+    private void createList(ListView listView) {
+        ArrayList<String> datas = new ArrayList<String>();
+        for (int i = 0; i < 50; i++) {
+            datas.add("name " + i);
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                R.layout.content_list_item, R.id.name, datas);
+        listView.setAdapter(adapter);
     }
 
     @OnClick(R.id.btn_hello)
@@ -36,11 +53,6 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
-    }
-
-    @OnClick(R.id.tv_bottom)
-    public void onBottomTextClick() {
-        mBdl.showBottomView();
     }
 
     @Override

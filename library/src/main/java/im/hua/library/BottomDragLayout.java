@@ -6,11 +6,15 @@ import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.widget.AbsListView;
+import android.widget.ScrollView;
 
 import im.hua.library.utils.DensityUtil;
 
@@ -289,7 +293,7 @@ public class BottomDragLayout extends ViewGroup {
     public boolean onTouchEvent(MotionEvent event) {
         mViewDragHelper.processTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_MOVE && getState() == State.EXPANDED) {
-            mBottomView.dispatchTouchEvent(event);
+            return mBottomView.dispatchTouchEvent(event);
         }
         return true;
     }
@@ -332,8 +336,48 @@ public class BottomDragLayout extends ViewGroup {
 
     private boolean interceptBottomView(View view) {
         if (view != null) {
-            if (view.getScrollY() > 0) {
-                return false;
+            if (view instanceof ScrollView || view instanceof WebView) {
+                if (view.getScrollY() > 0) {
+                    return false;
+                }
+            } else if (view instanceof AbsListView) {
+                //ListView and GridView
+                AbsListView listView = (AbsListView) view;
+                listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+                    @Override
+                    public void onScrollStateChanged(AbsListView view, int scrollState) {
+                        if (view.getChildCount() > 0 && view.getChildAt(0).getTop() < 0) {
+                            mShouldIntercept = false;
+                        } else {
+                            mShouldIntercept = true;
+                        }
+                    }
+
+                    @Override
+                    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    }
+                });
+                if (listView.getChildCount() > 0 && listView.getChildAt(0).getTop() < 0) {
+                    return false;
+                }
+            } else if (view instanceof RecyclerView) {
+                RecyclerView recyclerView = (RecyclerView) view;
+                recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                        super.onScrollStateChanged(recyclerView, newState);
+                        if (recyclerView.getChildCount() > 0 && recyclerView.getChildAt(0).getTop() < 0) {
+                            mShouldIntercept = false;
+                        } else {
+                            mShouldIntercept = true;
+                        }
+                    }
+                });
+                if (recyclerView.getChildCount() > 0 && recyclerView.getChildAt(0).getTop() < 0) {
+                    return false;
+                }
+            } else {
+                return true;
             }
         }
         return true;
