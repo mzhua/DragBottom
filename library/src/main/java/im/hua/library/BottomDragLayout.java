@@ -99,23 +99,19 @@ public class BottomDragLayout extends ViewGroup {
                 int topBound = getMeasuredHeight() - mBottomView.getMeasuredHeight();
                 topBound = (topBound < getPaddingTop() + mFinalMarginTopPx ? getPaddingTop() + mFinalMarginTopPx : topBound);
 
-                int bottomBound = mBottomView.getBottom();//+ mBottomInitialHeight;
+                int bottomBound = getMeasuredHeight() - mBottomInitialHeight;
                 bottomBound = (bottomBound < getPaddingTop() ? getPaddingTop() : bottomBound);
 
-                return Math.min((Math.max(top, topBound)), bottomBound);
+                int newTop = Math.min((Math.max(top, topBound)), bottomBound);
+                Log.d("BottomDragLayout", "newTop:" + newTop);
+                return newTop;
             }
 
             @Override
             public void onViewReleased(View releasedChild, float xvel, float yvel) {
                 super.onViewReleased(releasedChild, xvel, yvel);
                 if (releasedChild == mBottomView) {
-                    int settleTop = mBottomView.getTop();
-                   /* if (getMeasuredHeight() - mBottomView.getTop() > (mBottomView.getMeasuredHeight() / 2)) {
-                        settleTop = getMeasuredHeight() - mBottomView.getMeasuredHeight();
-                    } else {
-                        settleTop = getMeasuredHeight() - mBottomInitialHeight;
-                    }*/
-                    Log.d("BottomDragLayout", "yvel:" + yvel);
+                    int settleTop;
                     if (yvel < 0) {
                         if (yvel <= -10 || (yvel < 0 && getMeasuredHeight() - mBottomView.getTop() > (mBottomView.getMeasuredHeight() / 2))) {
                             //展开
@@ -180,8 +176,12 @@ public class BottomDragLayout extends ViewGroup {
 
             @Override
             public int getViewVerticalDragRange(View child) {
-                int verticalRange = child.getMeasuredHeight() - mBottomInitialHeight;
-                return verticalRange <= getPaddingTop() ? getMeasuredHeight() : verticalRange;
+                if (child == mBottomView) {
+                    return 1;
+                }
+                return 0;
+//                int verticalRange = child.getMeasuredHeight() - mBottomInitialHeight;
+//                return verticalRange <= getPaddingTop() ? getMeasuredHeight() : verticalRange;
             }
         });
     }
@@ -297,7 +297,7 @@ public class BottomDragLayout extends ViewGroup {
     protected void onFinishInflate() {
         super.onFinishInflate();
         if (getChildCount() != 2) {
-            throw new IllegalArgumentException("this layout can only contain 2 child views");
+            throw new IllegalArgumentException("this ViewGroup can only contains 2 child views");
         }
         mContentView = getChildAt(0);
         mBottomView = getChildAt(1);
