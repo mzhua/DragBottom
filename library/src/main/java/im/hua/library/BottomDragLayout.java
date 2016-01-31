@@ -2,6 +2,7 @@ package im.hua.library;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.view.ViewCompat;
@@ -31,21 +32,26 @@ public class BottomDragLayout extends ViewGroup {
 
     private int mBottomInitialHeight;
 
-    private int mMinAlpha = 0;
-    private int mMaxAlpha = 180;
-
-    private boolean mIsBottomViewOpen = false;
+    /**
+     * 0 ~ 255
+     */
+    private int mShadowMinAlpha;
 
     /**
-     * 当BottomView的Width小于Layout时是否居中
+     * 0 ~ 255
      */
-    private boolean mGravityCenter = true;
+    private int mShadowMaxAlpha;
+
+    /**
+     * 0:left
+     * 1:center
+     * 2:right
+     */
+    private int mBottomViewGravity;
 
     /**
      * BottomView展开时距离顶部距离
-     * 单位：dp
      */
-    private float mFinalMarginTop = 48f;
     private int mFinalMarginTopPx;
 
     private State state = State.HIDDEN;
@@ -66,31 +72,36 @@ public class BottomDragLayout extends ViewGroup {
     }
 
     public BottomDragLayout(Context context) {
-        super(context);
-        init();
+        this(context, null);
     }
 
     public BottomDragLayout(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
+        this(context, attrs, 0);
     }
 
     public BottomDragLayout(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
+        this(context, attrs, defStyleAttr, 0);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public BottomDragLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.BottomDragLayout, defStyleAttr, 0);
+
+        mShadowMinAlpha = a.getInt(R.styleable.BottomDragLayout_shadowMinAlpha, 0);
+        mShadowMaxAlpha = a.getInt(R.styleable.BottomDragLayout_shadowMaxAlpha, 180);
+        mBottomViewGravity = a.getInt(R.styleable.BottomDragLayout_bottomViewGravity, 1);
+        mFinalMarginTopPx = a.getDimensionPixelSize(R.styleable.BottomDragLayout_finalMarginTop, DensityUtil.dp2px(context, 48));
+        mBottomInitialHeight = a.getDimensionPixelSize(R.styleable.BottomDragLayout_bottomInitialHeight, DensityUtil.dp2px(context, 48));
+
+        a.recycle();
+
         init();
     }
 
     private void init() {
-        setFocusableInTouchMode(true);
 
-        mBottomInitialHeight = DensityUtil.dp2px(getContext(), 56);
-        mFinalMarginTopPx = DensityUtil.dp2px(getContext(), mFinalMarginTop);
+        setFocusableInTouchMode(true);
 
         mShadowView = new View(getContext());
         mShadowView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
@@ -100,7 +111,6 @@ public class BottomDragLayout extends ViewGroup {
         mShadowView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                setState(State.SETTLING);
                 hideBottomView();
             }
         });
@@ -161,8 +171,8 @@ public class BottomDragLayout extends ViewGroup {
             public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
                 super.onViewPositionChanged(changedView, left, top, dx, dy);
                 if (changedView == mBottomView) {
-                    int alp = (mMaxAlpha - mMinAlpha) * (getMeasuredHeight() - mBottomInitialHeight - top) / (mBottomView.getMeasuredHeight() - mBottomInitialHeight) + mMinAlpha;
-                    if (alp >= mMinAlpha && alp <= mMaxAlpha) {
+                    int alp = (mShadowMaxAlpha - mShadowMinAlpha) * (getMeasuredHeight() - mBottomInitialHeight - top) / (mBottomView.getMeasuredHeight() - mBottomInitialHeight) + mShadowMinAlpha;
+                    if (alp >= mShadowMinAlpha && alp <= mShadowMaxAlpha) {
                         mShadowView.setAlpha(1.0f * alp / 255);
                     }
                 }
@@ -173,13 +183,11 @@ public class BottomDragLayout extends ViewGroup {
                 super.onViewDragStateChanged(state);
                 switch (state) {
                     case ViewDragHelper.STATE_IDLE:
-                        if (mShadowView.getAlpha() == (1.0f * mMinAlpha / 255)) {
-                            mIsBottomViewOpen = false;
+                        if (mShadowView.getAlpha() == (1.0f * mShadowMinAlpha / 255)) {
                             setState(State.HIDDEN);
                             // 将ShadowView的位置设置到底部，防止其阻止ContentView的点击事件，因为将其设置为Gone会导致重新刷新界面
                             mShadowView.setTop(getBottom());
                         } else {
-                            mIsBottomViewOpen = true;
                             setState(State.EXPANDED);
                         }
                         break;
@@ -255,7 +263,14 @@ public class BottomDragLayout extends ViewGroup {
             switch (i) {
                 case 0:
                     right = childView.getMeasuredWidth();
-                    bottom = childView.getMeasuredHeight() - mBottomInitialHeight;
+                    bottom = childView.getMeasuredHeight();// - mBottomInitialHeight;
+                    if (childView instanceof ViewGroup) {
+                        ViewGroup viewGroup = (ViewGroup) childView;
+                        viewGroup.setPadding(viewGroup.getPaddingLeft(), viewGroup.getPaddingTop(), viewGroup.getPaddingRight(), mBottomInitialHeight);
+                        viewGroup.setClipToPadding(false);
+                    } else {
+                        childView.setPadding(childView.getPaddingLeft(), childView.getPaddingTop(), childView.getPaddingRight(), mBottomInitialHeight);
+                    }
                     break;
                 case 1:
                     top = getBottom();//default set the shadow view to the bottom,so it won't interrupt the click ecent
@@ -263,11 +278,19 @@ public class BottomDragLayout extends ViewGroup {
                     bottom = getMeasuredHeight();
                     break;
                 case 2:
-                    if (mGravityCenter) {
-                        left = (getMeasuredWidth() - getPaddingLeft() - getPaddingRight() - childView.getMeasuredWidth()) / 2;
-                    } else {
-                        left = childView.getPaddingLeft();
+
+                    switch (mBottomViewGravity) {
+                        case 0:
+                            left = childView.getPaddingLeft();
+                            break;
+                        case 1:
+                            left = (getMeasuredWidth() - getPaddingLeft() - getPaddingRight() - childView.getMeasuredWidth()) / 2;
+                            break;
+                        case 2:
+                            left = getMeasuredWidth() - getPaddingRight() - childView.getMeasuredWidth();
+                            break;
                     }
+
                     right = left + childView.getMeasuredWidth();
 
                     if (childView.getMeasuredHeight() < mBottomInitialHeight) {
@@ -384,20 +407,40 @@ public class BottomDragLayout extends ViewGroup {
     }
 
     public void hideBottomView() {
-        if (mIsBottomViewOpen) {
-            mIsBottomViewOpen = false;
+        mShouldIntercept = true;
+        if (isBottomViewExpand()) {
+            if (mBottomView instanceof ScrollView || mBottomView instanceof WebView) {
+                mBottomView.scrollTo(0, 0);
+            } else if (mBottomView instanceof AbsListView) {
+                //ListView and GridView
+                AbsListView listView = (AbsListView) mBottomView;
+                if (listView.getChildCount() > 0) {
+                    listView.smoothScrollToPosition(0);
+                }
+            } else if (mBottomView instanceof RecyclerView) {
+                RecyclerView recyclerView = (RecyclerView) mBottomView;
+                if (recyclerView.getChildCount() > 0) {
+                    recyclerView.scrollToPosition(0);
+                }
+            }
+
             mViewDragHelper.smoothSlideViewTo(mBottomView, mBottomView.getLeft(), getMeasuredHeight() - mBottomInitialHeight);
             invalidate();
         }
     }
 
     public void showBottomView() {
-        if (!mIsBottomViewOpen) {
-            mIsBottomViewOpen = true;
+        if (!isBottomViewExpand()) {
+            setState(State.EXPANDED);
+
             int settleTop = getMeasuredHeight() - mBottomView.getMeasuredHeight();
             settleTop = (settleTop < getPaddingTop() + mFinalMarginTopPx ? getPaddingTop() + mFinalMarginTopPx : settleTop);
             mViewDragHelper.smoothSlideViewTo(mBottomView, mBottomView.getLeft(), settleTop);
             invalidate();
         }
+    }
+
+    public boolean isBottomViewExpand() {
+        return getState() == State.EXPANDED;
     }
 }

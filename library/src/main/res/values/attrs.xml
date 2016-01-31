@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="BottomDragLayout">
+        <attr name="shadowMinAlpha" format="integer"/>
+        <attr name="shadowMaxAlpha" format="integer"/>
+        <attr name="bottomViewGravity" format="integer">
+            <enum name="left" value="0"/>
+            <enum name="center" value="1"/>
+            <enum name="right" value="2"/>
+        </attr>
+        <attr name="finalMarginTop" format="dimension|reference"/>
+        <attr name="bottomInitialHeight" format="dimension|reference"/>
+    </declare-styleable>
+</resources>
