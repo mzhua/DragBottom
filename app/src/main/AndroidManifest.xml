@@ -18,6 +18,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".chapter_3.TestActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/app_name"
+            android:launchMode="standard" />
+        <activity
+            android:name=".chapter_3.DemoActivity_1"
+            android:configChanges="screenLayout"
+            android:label="scene1"
+            android:launchMode="standard" />
+        <activity
+            android:name=".chapter_3.DemoActivity_2"
+            android:configChanges="screenLayout"
+            android:label="scene1"
+            android:launchMode="standard" />
+        <activity
+            android:name=".chapter_3.ThirdActivity"
+            android:configChanges="screenLayout"
+            android:label="@string/app_name" />
+        <activity
+            android:name=".chapter_3.MainActivity"
+            android:label="@string/app_name" >
+
+        </activity>
+
     </application>
 
 </manifest>

@@ -4,9 +4,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,8 +41,25 @@ public class BottomDragLayout extends ViewGroup {
      * BottomView展开时距离顶部距离
      * 单位：dp
      */
-    private int mFinalMarginTop = 48;
+    private float mFinalMarginTop = 48f;
     private int mFinalMarginTopPx;
+
+    private State state = State.HIDDEN;
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public enum State {
+        HIDDEN,
+        EXPANDED,
+        PEEKED,
+        SETTLING
+    }
 
     public BottomDragLayout(Context context) {
         super(context);
@@ -79,6 +96,7 @@ public class BottomDragLayout extends ViewGroup {
         mShadowView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                setState(State.SETTLING);
                 hideBottomView();
             }
         });
@@ -86,7 +104,11 @@ public class BottomDragLayout extends ViewGroup {
         mViewDragHelper = ViewDragHelper.create(this, 1.0f, new ViewDragHelper.Callback() {
             @Override
             public boolean tryCaptureView(View child, int pointerId) {
-                return child == mBottomView;
+                boolean capture = (child == mBottomView);
+                if (capture) {
+                    setState(State.PEEKED);
+                }
+                return capture;
             }
 
             @Override
@@ -102,14 +124,13 @@ public class BottomDragLayout extends ViewGroup {
                 int bottomBound = getMeasuredHeight() - mBottomInitialHeight;
                 bottomBound = (bottomBound < getPaddingTop() ? getPaddingTop() : bottomBound);
 
-                int newTop = Math.min((Math.max(top, topBound)), bottomBound);
-                Log.d("BottomDragLayout", "newTop:" + newTop);
-                return newTop;
+                return Math.min((Math.max(top, topBound)), bottomBound);
             }
 
             @Override
             public void onViewReleased(View releasedChild, float xvel, float yvel) {
                 super.onViewReleased(releasedChild, xvel, yvel);
+                setState(State.SETTLING);
                 if (releasedChild == mBottomView) {
                     int settleTop;
                     if (yvel < 0) {
@@ -143,10 +164,6 @@ public class BottomDragLayout extends ViewGroup {
                 }
             }
 
-            /**
-             * 将ShadowView的位置设置到底部，防止其阻止ContentView的点击事件，因为将其设置为Gone会导致重新刷新界面
-             * @param state
-             */
             @Override
             public void onViewDragStateChanged(int state) {
                 super.onViewDragStateChanged(state);
@@ -154,15 +171,20 @@ public class BottomDragLayout extends ViewGroup {
                     case ViewDragHelper.STATE_IDLE:
                         if (mShadowView.getAlpha() == (1.0f * mMinAlpha / 255)) {
                             mIsBottomViewOpen = false;
+                            setState(State.HIDDEN);
+                            // 将ShadowView的位置设置到底部，防止其阻止ContentView的点击事件，因为将其设置为Gone会导致重新刷新界面
                             mShadowView.setTop(getBottom());
                         } else {
                             mIsBottomViewOpen = true;
+                            setState(State.EXPANDED);
                         }
                         break;
                     case ViewDragHelper.STATE_DRAGGING:
+                        setState(State.PEEKED);
                         mShadowView.setTop(getTop());
                         break;
                     case ViewDragHelper.STATE_SETTLING:
+                        setState(State.SETTLING);
                         mShadowView.setTop(getTop());
                         break;
                 }
@@ -176,25 +198,10 @@ public class BottomDragLayout extends ViewGroup {
 
             @Override
             public int getViewVerticalDragRange(View child) {
-                if (child == mBottomView) {
-                    return 1;
-                }
-                return 0;
-//                int verticalRange = child.getMeasuredHeight() - mBottomInitialHeight;
-//                return verticalRange <= getPaddingTop() ? getMeasuredHeight() : verticalRange;
+                int verticalRange = child.getMeasuredHeight() - mBottomInitialHeight;
+                return verticalRange <= getPaddingTop() ? getMeasuredHeight() : verticalRange;
             }
         });
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return mViewDragHelper.shouldInterceptTouchEvent(ev);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        mViewDragHelper.processTouchEvent(event);
-        return true;
     }
 
     @Override
@@ -204,27 +211,15 @@ public class BottomDragLayout extends ViewGroup {
         }
     }
 
-    /**
-     * 计算所有ChildView的宽度和高度 然后根据ChildView的计算结果，设置自己的宽和高
-     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        /**
-         * 获得此ViewGroup上级容器为其推荐的宽和高，以及计算模式
-         */
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        /**
-         * 计算出所有的childView的宽和高
-         */
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
-        /**
-         * 用于当ViewGroup设置为wrap_content时，设置其size
-         */
         int width = 0;
         int height = 0;
 
@@ -256,7 +251,6 @@ public class BottomDragLayout extends ViewGroup {
             switch (i) {
                 case 0:
                     right = childView.getMeasuredWidth();
-                    //TODO fix it
                     bottom = childView.getMeasuredHeight() - mBottomInitialHeight;
                     break;
                 case 1:
@@ -277,16 +271,32 @@ public class BottomDragLayout extends ViewGroup {
                     } else {
                         top = getMeasuredHeight() - mBottomInitialHeight;
                     }
-                    bottom = top + childView.getMeasuredHeight();
+                    bottom = top + childView.getMeasuredHeight() - mFinalMarginTopPx;
                     break;
             }
             childView.layout(left, top, right, bottom);
         }
     }
 
+    private boolean mShouldIntercept = true;
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return mShouldIntercept && mViewDragHelper.shouldInterceptTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mViewDragHelper.processTouchEvent(event);
+        if (event.getAction() == MotionEvent.ACTION_MOVE && getState() == State.EXPANDED) {
+            mBottomView.dispatchTouchEvent(event);
+        }
+        return true;
+    }
+
     @Override
     public boolean onKeyPreIme(int keyCode, KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && mIsBottomViewOpen) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && getState() == State.EXPANDED) {
             hideBottomView();
             return true;
         }
@@ -301,6 +311,16 @@ public class BottomDragLayout extends ViewGroup {
         }
         mContentView = getChildAt(0);
         mBottomView = getChildAt(1);
+        mBottomView.setClickable(true);
+        ViewCompat.setElevation(mBottomView, DensityUtil.dp2px(getContext(), 16f));
+
+        mBottomView.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mShouldIntercept = interceptBottomView(v);
+                return false;
+            }
+        });
 
         addView(mShadowView, 1);
     }
@@ -308,6 +328,15 @@ public class BottomDragLayout extends ViewGroup {
     @Override
     public LayoutParams generateLayoutParams(AttributeSet attrs) {
         return new MarginLayoutParams(getContext(), attrs);
+    }
+
+    private boolean interceptBottomView(View view) {
+        if (view != null) {
+            if (view.getScrollY() > 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void hideBottomView() {
