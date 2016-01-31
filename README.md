@@ -107,7 +107,7 @@ hideBottomView()
 | -------------       |:-------------:        | -----:|
 | shadowMinAlpha      | 背景阴影的最小透明度  | 0 ~ 255，并且小于shadowMaxAlpha|
 | shadowMaxAlpha      | 背景阴影的最大透明度  | 0 ~ 255，并且大于shadowMinAlpha|
-| bottomViewGravity   | BottomView的对其方式  | left|center|right |
-| finalMarginTop      | BottomView展开时距离父容器顶部的距离              |    dimension|reference |
-| bottomInitialHeight | 初始化时，BottomView在底部展示的高度              |    dimension|reference |
+| bottomViewGravity   | BottomView的对其方式  | left、center、right |
+| finalMarginTop      | BottomView展开时距离父容器顶部的距离              |    dimension、reference |
+| bottomInitialHeight | 初始化时，BottomView在底部展示的高度              |    dimension、reference |
 
