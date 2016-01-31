@@ -1,6 +1,7 @@
 # DragBottom
 
-[! (/screenshots/1.pic.jpg)]
+<img src="screenshots/2.pic.jpg" alt="1" width="300px"/>
+<img src="screenshots/1.pic.jpg" alt="2" width="300px"/>
 
 
 ##引入项目
