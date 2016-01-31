@@ -6,7 +6,7 @@
 
 ##引入项目
 
-使用AndroidStudio引入的方式
+使用AndroidStudio引入的方式(目前没有jcenter，可自行使用jitpack)
 ```groovy
 repositories {
     jcenter()
