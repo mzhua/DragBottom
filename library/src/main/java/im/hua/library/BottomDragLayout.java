@@ -309,6 +309,9 @@ public class BottomDragLayout extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (!isBottomViewExpand()) {
+            return true;
+        }
         return mShouldIntercept && mViewDragHelper.shouldInterceptTouchEvent(ev);
     }
 
