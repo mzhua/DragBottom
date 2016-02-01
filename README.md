@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compile ''
+    compile 'com.github.mzhua:DragBottom:-SNAPSHOT'
 }
 ```
 
